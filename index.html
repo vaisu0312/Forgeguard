@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForgeGuard AI | Advanced Security Operations</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+    
+    <div class="app-container">
+        <nav class="sidebar glass-panel">
+            <div class="logo-container">
+                <i class="fa-solid fa-shield-halved glow-icon"></i>
+                <h2>ForgeGuard<span>.ai</span></h2>
+            </div>
+            
+            <ul class="nav-links" id="sidebar-nav">
+                <li class="active" data-target="dashboard"><i class="fa-solid fa-radar"></i> Dashboard</li>
+                <li data-target="analysis"><i class="fa-solid fa-magnifying-glass-chart"></i> Deep Analysis</li>
+                <li data-target="timeline"><i class="fa-solid fa-timeline"></i> Threat Timeline</li>
+                <li data-target="reports"><i class="fa-solid fa-book-journal-whills"></i> Reports</li>
+                <li data-target="settings"><i class="fa-solid fa-gear"></i> Settings</li>
+            </ul>
+            
+            <div class="system-status">
+                <div class="status-indicator online"></div>
+                <span>SOC Core: <span id="status-text">Online</span></span>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="top-header glass-panel">
+                <div class="header-title">
+                    <h1 id="page-title">Real-Time Threat Intelligence</h1>
+                    <p>Monitoring global ingestion nodes</p>
+                </div>
+                <div class="header-actions">
+                    <div class="stat-badge">
+                        <i class="fa-solid fa-shield-halved"></i>
+   				 ForgeGuard Engine Online
+                    </div>
+                    <div class="user-profile">
+                         <img src="logo.png" alt="ForgeGuard">
+                    </div>
+                </div>
+            </header>
+
+            <div id="views-container" class="views-wrapper">
+                
+                <div id="view-dashboard" class="view-section active">
+                    
+                    <div class="stats-row">
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon"><i class="fa-solid fa-file-shield"></i></div>
+                            <div class="stat-info">
+                                <h4>Files Scanned</h4>
+                                <h2 id="kpi-scans">0</h2>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon danger"><i class="fa-solid fa-bug"></i></div>
+                            <div class="stat-info">
+                                <h4>Threats Blocked</h4>
+                                <h2 id="kpi-threats">0</h2>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon info"><i class="fa-solid fa-percent"></i></div>
+                            <div class="stat-info">
+                                <h4>Avg Trust Score</h4>
+                                <h2 id="kpi-score">0%</h2>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon warning"><i class="fa-solid fa-stopwatch"></i></div>
+                            <div class="stat-info">
+                                <h4>Avg Processing</h4>
+                                <h2 id="kpi-time">0ms</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row">
+                        <div class="chart-container glass-panel">
+                            <h3><i class="fa-solid fa-chart-line"></i> Daily Scan Volume</h3>
+                            <canvas id="scansChart"></canvas>
+                        </div>
+                        <div class="chart-container glass-panel">
+                            <h3><i class="fa-solid fa-chart-pie"></i> Threat Distribution</h3>
+                            <canvas id="threatsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        
+                        <section class="ingestion-section glass-panel">
+                            <h3><i class="fa-solid fa-cloud-arrow-up"></i> Asset Ingestion</h3>
+                            <div id="dropzone" class="dropzone">
+                                <input type="file" id="fileInput" accept="image/*, audio/*" hidden>
+                                <i class="fa-solid fa-file-shield drop-icon"></i>
+                                <p>Drag & Drop asset or <span class="highlight">Browse</span></p>
+                                <small>Supports Image (JPG, PNG) & Audio (WAV, MP3)</small>
+                            </div>
+                            
+                            <div id="preview-container" class="preview-container hidden">
+                                <div class="preview-header">
+                                    <h4>Target Asset Details</h4>
+                                    <button id="clear-btn" class="btn-clear"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                                <div id="media-preview" class="media-preview">
+                                    </div>
+                                <div class="asset-meta" id="asset-meta">
+                                    </div>
+                                <button id="scan-btn" class="btn-scan">
+                                    <i class="fa-solid fa-fingerprint"></i> Initialize Deep Scan
+                                </button>
+                            </div>
+                        </section>
+
+                        <section class="results-section">
+                            <div class="score-card glass-panel">
+                                <h3>Authenticity Trust Score</h3>
+                                
+                                <div id="scan-pipeline" class="scan-pipeline hidden">
+                                    <ul class="pipeline-steps">
+                                        <li id="step-upload"><i class="fa-solid fa-circle-notch"></i> Uploading Asset...</li>
+                                        <li id="step-ocr" class="pending"><i class="fa-solid fa-font"></i> Running OCR Extraction...</li>
+                                        <li id="step-meta" class="pending"><i class="fa-solid fa-database"></i> Inspecting Metadata...</li>
+                                        <li id="step-pixel" class="pending"><i class="fa-solid fa-microscope"></i> Pixel/Spectral Analysis...</li>
+                                        <li id="step-ai" class="pending"><i class="fa-solid fa-brain"></i> AI Threat Engine Evaluation...</li>
+                                        <li id="step-score" class="pending"><i class="fa-solid fa-calculator"></i> Generating Trust Score...</li>
+                                    </ul>
+                                </div>
+
+                                <div id="score-display" class="circular-progress-container">
+                                    <svg class="circular-progress" viewBox="0 0 100 100">
+                                        <circle class="bg" cx="50" cy="50" r="40"></circle>
+                                        <circle class="meter" cx="50" cy="50" r="40" id="score-meter"></circle>
+                                    </svg>
+                                    <div class="score-value">
+                                        <span id="score-text">--</span><span class="percent">%</span>
+                                    </div>
+                                </div>
+                                <div class="threat-level" id="threat-indicator">
+                                    Threat Level: <span class="badge neutral">AWAITING INPUT</span>
+                                </div>
+                            </div>
+
+                            <div class="xai-container">
+                                <div class="xai-card glass-panel" id="xai-ocr">
+                                    <div class="xai-icon"><i class="fa-solid fa-language"></i></div>
+                                    <div class="xai-content">
+                                        <h4>OCR Analysis</h4>
+                                        <p>Awaiting scan...</p>
+                                    </div>
+                                </div>
+                                <div class="xai-card glass-panel" id="xai-meta">
+                                    <div class="xai-icon"><i class="fa-solid fa-fingerprint"></i></div>
+                                    <div class="xai-content">
+                                        <h4>Metadata Integrity</h4>
+                                        <p>Awaiting scan...</p>
+                                    </div>
+                                </div>
+                                <div class="xai-card glass-panel" id="xai-pixel">
+                                    <div class="xai-icon"><i class="fa-solid fa-wave-square"></i></div>
+                                    <div class="xai-content">
+                                        <h4>Pixel / Spectral</h4>
+                                        <p>Awaiting scan...</p>
+                                    </div>
+                                </div>
+                                <div class="xai-card glass-panel" id="xai-ai">
+                                    <div class="xai-icon"><i class="fa-solid fa-network-wired"></i></div>
+                                    <div class="xai-content">
+                                        <h4>AI Verdict</h4>
+                                        <p>Awaiting scan...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="terminal-section glass-panel">
+                            <div class="terminal-header">
+                                <h3><i class="fa-solid fa-terminal"></i> ForgeGuard Execution Log</h3>
+                                <div class="window-controls">
+                                    <span></span><span></span><span></span>
+                                </div>
+                            </div>
+                            <div class="terminal-body" id="terminal-output">
+                                <div class="log-line system">ForgeGuard SOC Terminal v3.0 initialized.</div>
+                                <div class="log-line system">Connecting to backend engines at 127.0.0.1:8000... OK.</div>
+                                <div class="log-line system">Awaiting payload injection.</div>
+                            </div>
+                        </section>
+
+                    </div>
+                </div>
+
+                <div id="view-analysis" class="view-section hidden">
+                    <div class="analysis-container glass-panel">
+                        <h2><i class="fa-solid fa-microscope"></i> Forensic Asset Breakdown</h2>
+                        <p class="subtitle">Real-time derived metadata from the latest scanned asset.</p>
+                        
+                        <div id="analysis-content" class="analysis-grid">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-inbox"></i>
+                                <p>No asset scanned recently. Upload an asset in the Dashboard to view deep analysis.</p>
+                            </div>
+                            </div>
+                    </div>
+                </div>
+
+                <div id="view-timeline" class="view-section hidden">
+                    <div class="timeline-container glass-panel">
+                        <div class="table-header">
+                            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historical Scan Registry</h2>
+                            <button id="clear-history-btn" class="btn-secondary"><i class="fa-solid fa-trash"></i> Purge Logs</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="soc-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>File Name</th>
+                                        <th>Type</th>
+                                        <th>Trust Score</th>
+                                        <th>Verdict</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="timeline-tbody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-reports" class="view-section hidden">
+                    <div class="reports-container glass-panel">
+                        <h2><i class="fa-solid fa-file-pdf"></i> Generate Forensic Reports</h2>
+                        <p class="subtitle">Export localized scan results to secure PDF documents.</p>
+                        <div class="table-responsive mt-1">
+                            <table class="soc-table">
+                                <thead>
+                                    <tr>
+                                        <th>Scan ID / Date</th>
+                                        <th>Asset Name</th>
+                                        <th>Verdict</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reports-tbody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-settings" class="view-section hidden">
+                    <div class="settings-container glass-panel">
+                        <h2><i class="fa-solid fa-sliders"></i> Platform Configuration</h2>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Dark Theme Matrix</h4>
+                                    <p>Toggle high-contrast glassmorphism.</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="setting-theme" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Particle Network Density</h4>
+                                    <p>Adjust background render intensity.</p>
+                                </div>
+                                <input type="range" id="setting-particles" min="5000" max="30000" step="5000" value="15000">
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Terminal Typist Speed</h4>
+                                    <p>Adjust execution log output speed.</p>
+                                </div>
+                                <select id="setting-speed" class="soc-select">
+                                    <option value="10">Fast (10ms)</option>
+                                    <option value="30" selected>Normal (30ms)</option>
+                                    <option value="70">Forensic (70ms)</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Strict Threat Threshold</h4>
+                                    <p>Trust score below this triggers CRITICAL.</p>
+                                </div>
+                                <div class="slider-with-value">
+                                    <input type="range" id="setting-threshold" min="30" max="80" step="5" value="50">
+                                    <span id="threshold-val">50%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
