@@ -107,7 +107,7 @@ export async function runScanPipeline(backendResponse, file, isAudio, processing
     // --- FIX: Use correct field names from the updated backend ---
     // Backend now returns: authenticity_score, is_deepfake, explanations, confidence
     const score = backendResponse.authenticity_score ?? (backendResponse.is_deepfake ? 15 : 92);
-    const isThreat = backendResponse.is_deepfake === true || score < 50;
+    const isThreat = backendResponse.is_deepfake === true || score < 72;
     const confidence = backendResponse.confidence || 'medium';
 
     logTerminal(`Pipeline Complete. Trust Score: ${score}% | Confidence: ${confidence.toUpperCase()}`, isThreat ? 'danger' : 'success');
@@ -140,7 +140,7 @@ function renderTrustScore(score, isThreat) {
     let badgeClass = 'low';
     let badgeText = 'LOW (AUTHENTIC)';
 
-    if (score < threshold || score < 40) {
+    if (isThreat || score < threshold || score < 40) {
         color = 'var(--accent-red)';
         badgeClass = 'high';
         badgeText = 'CRITICAL (AI/MANIPULATED)';

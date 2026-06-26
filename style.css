@@ -967,3 +967,54 @@ body.light-theme .log-line.system { color: #475569; }
     .stats-row { grid-template-columns: 1fr; }
     .setting-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
 }
+.engine-online{
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    padding:12px 22px;
+
+    border-radius:40px;
+
+    border:1px solid #00f7ff;
+
+    color:#00f7ff;
+
+    font-weight:700;
+
+    box-shadow:0 0 20px rgba(0,247,255,.25);
+}
+
+.pulse-dot{
+
+    width:12px;
+
+    height:12px;
+
+    border-radius:50%;
+
+    background:#39ff14;
+
+    box-shadow:0 0 20px #39ff14;
+
+    animation:pulse 1.2s infinite;
+}
+
+@keyframes pulse{
+
+0%{
+transform:scale(1);
+opacity:1;
+}
+
+50%{
+transform:scale(1.5);
+opacity:.5;
+}
+
+100%{
+transform:scale(1);
+opacity:1;
+}
+
+}
